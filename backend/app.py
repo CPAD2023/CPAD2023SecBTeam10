@@ -99,7 +99,7 @@ def create_issue():
         return f"Failure. The following error occured with the database: {str(e)}"
     
 @app.route("/update_issue", methods=["POST"])
-def create_issue():
+def update_issue():
     issue_id = str(request.form["issue_id"])
     update_fields = []
     update_values = []
@@ -120,7 +120,7 @@ def create_issue():
     except Exception as e:
         return f"Failure. The following error ouccured: {str(e)}"
 
-@app.route("delete_issue", methods=["POST"])
+@app.route("/delete_issue", methods=["POST"])
 def delete_issue():
     issue_id = str(request.form["issue_id"])
     sql_query = f"SELECT * FROM ISSUES WHERE issue_id = {issue_id}"
@@ -137,7 +137,7 @@ def delete_issue():
     except Exception as e:
         return f"Failed. The following error occured. {str(e)}"
 
-@app.route("update_priority", methods=["POST"])
+@app.route("/update_priority", methods=["POST"])
 def update_priority():
     issue_id = str(request.form["issue_id"])
     priority = str(request.form["priority"])
@@ -155,7 +155,7 @@ def update_priority():
     except Exception as e:
         return f"Failed. The following error occoured: {str(e)}"
 
-@app.route("update_story_points", methods=["POST"])
+@app.route("/update_story_points", methods=["POST"])
 def update_story_priority():
     issue_id = str(request.form["issue_id"])
     story_points = str(request.form["story_points"])
@@ -173,12 +173,12 @@ def update_story_priority():
     except Exception as e:
         return f"Failed. The following error occoured: {str(e)}"
 
-@app.route("scrum_update", methods = ["POST"])
+@app.route("/scrum_update", methods = ["POST"])
 def scrum_update():
     scrum_update = str(request.form["scrum_update"])
     #TODO: Process the scrum update (AI agent work).
 
-@app.route("assign_issue", methods = ["POST"])
+@app.route("/assign_issue", methods = ["POST"])
 def assign_issue():
     try:
         issue_id = request.form["issue_id"]
