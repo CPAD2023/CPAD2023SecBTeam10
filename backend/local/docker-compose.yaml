@@ -7,8 +7,10 @@ services:
     volumes:
       - ..:/app
     command: python app.py
+    ports:
+      - "5000:5000"
     networks:
-      - my-network
+      - scrum-network
 
   postgres:
     image: postgres:latest
@@ -16,17 +18,18 @@ services:
       POSTGRES_DB: scrumbot
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: scrumbotagent
+    hostname: "scrum-postgres"
     ports:
       - "5432:5432" 
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - my-network
+      - scrum-network
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  my-network:
+  scrum-network:
     driver: bridge
