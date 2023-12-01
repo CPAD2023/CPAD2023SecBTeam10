@@ -1,0 +1,7 @@
+#application
+psycopg2
+flask
+
+#ai-agent
+openai
+langchain
