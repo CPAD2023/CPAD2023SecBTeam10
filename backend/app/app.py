@@ -48,7 +48,6 @@ def signup():
             return "Failure. User already Exists."
     except Exception as e:
         return f"Failure. The following error occured with the database: {str(e)}"
-        
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -65,6 +64,45 @@ def login():
                 return "Failure. User does not exist."
         except Exception as e:
             return f"Failure. The following error occured with the database: {str(e)}."
+        
+@app.route("/my_projects", methods=["POST"])
+def my_project():
+    userid = request.form("userid")
+    query = """
+            SELECT DISTINCT p.project_id
+            FROM projects p
+            JOIN issue i ON p.project_id = i.project_id
+            JOIN assignment a ON i.issue_id = a.issue_id
+            WHERE a.assignee_id = %s;
+        """
+    cursor.execute(query, (userid,))
+    project_ids = [result[0] for result in cursor.fetchall()]
+    return project_ids
+
+@app.route("/my_issues", methods=["POST"])
+def my_issues():
+    userid = request.form("userid")
+    projectid = request.form("projectid")
+    query = """
+            SELECT
+                i.issue_id,
+                i.issue_title,
+                i.issue_desc,
+                i.story_points,
+                i.priority,
+                u.first_name || ' ' || u.last_name AS assigned_user
+            FROM
+                issue i
+            JOIN
+                users u ON i.assignee_id = u.user_id
+            WHERE
+                i.project_id = %s
+                AND i.assignee_id = %s;
+    """
+    cursor.execute(query, (projectid, userid))
+    columns = [desc[0] for desc in cursor.description]
+    issues = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    return issues
 
 @app.route('/create_issue', methods=['POST'])
 def create_issue():
