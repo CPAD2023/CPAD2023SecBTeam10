@@ -67,42 +67,74 @@ def login():
         
 @app.route("/my_projects", methods=["POST"])
 def my_project():
-    userid = request.form("userid")
-    query = """
-            SELECT DISTINCT p.project_id
-            FROM projects p
-            JOIN issue i ON p.project_id = i.project_id
-            JOIN assignment a ON i.issue_id = a.issue_id
-            WHERE a.assignee_id = %s;
-        """
-    cursor.execute(query, (userid,))
-    project_ids = [result[0] for result in cursor.fetchall()]
-    return project_ids
+    try:
+        userid = str(request.form['user_id'])
+        query = """
+                SELECT DISTINCT p.project_id
+                FROM projects p
+                JOIN issue i ON p.project_id = i.project_id
+                JOIN assignment a ON i.issue_id = a.issue_id
+                WHERE a.assignee_id = %s;
+            """
+        cursor.execute(query, (userid,))
+        project_ids = [result[0] for result in cursor.fetchall()]
+        return project_ids
+    except Exception as e:
+        return f"Failure. The following error occured: {str(e)}"
 
 @app.route("/my_issues", methods=["POST"])
 def my_issues():
-    userid = request.form("userid")
-    projectid = request.form("projectid")
-    query = """
+    try:
+        userid = str(request.form['user_id'])
+        projectid = str(request.form['project_id'])
+        query = """
+                SELECT
+                    i.issue_id,
+                    i.issue_title,
+                    i.issue_desc,
+                    i.story_points,
+                    i.priority,
+                    u.first_name || ' ' || u.last_name AS assigned_user
+                FROM
+                    issue i
+                JOIN
+                    users u ON i.assignee_id = u.user_id
+                WHERE
+                    i.project_id = %s
+                    AND i.assignee_id = %s;
+        """
+        cursor.execute(query, (projectid, userid))
+        columns = [desc[0] for desc in cursor.description]
+        issues = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return issues
+    except Exception as e:
+        return f"Failure. The following error occurred: {str(e)}"
+
+@app.route('/issue_detail', methods=['POST'])
+def issue_detail():
+    try:
+        issue_id = str(request.form['issue_id'])
+        query = """
             SELECT
                 i.issue_id,
                 i.issue_title,
                 i.issue_desc,
-                i.story_points,
+                i.reporter_id,
+                i.assignee_id,
                 i.priority,
-                u.first_name || ' ' || u.last_name AS assigned_user
+                i.story_points
             FROM
                 issue i
-            JOIN
-                users u ON i.assignee_id = u.user_id
             WHERE
-                i.project_id = %s
-                AND i.assignee_id = %s;
-    """
-    cursor.execute(query, (projectid, userid))
-    columns = [desc[0] for desc in cursor.description]
-    issues = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    return issues
+                i.issue_id = %s;
+        """
+        cursor.execute(query, (issue_id,))
+        columns = [desc[0] for desc in cursor.description]
+        issue_details = dict(zip(columns, cursor.fetchone()))
+        return issue_details
+    except Exception as e:
+        return f"Failure. The following error occured: {str(e)}"
+    
 
 @app.route('/create_issue', methods=['POST'])
 def create_issue():
