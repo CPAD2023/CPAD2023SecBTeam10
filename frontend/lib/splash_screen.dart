@@ -45,7 +45,10 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              FlutterLogo(size: 100.0),
+              Image.asset(
+                'assets/scrum_icon.png',  // Adjust the path and file name accordingly
+                width: 100.0,  // Adjust the size of your custom icon
+              ),
               SizedBox(height: 16.0),
               Text(
                 'Scrum Bot',

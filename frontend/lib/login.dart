@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -6,8 +8,35 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    String apiUrl = 'http://127.0.0.1:5000/login';
+    String enteredEmail = _emailController.text;
+    String enteredPassword = _passwordController.text;
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': enteredEmail,
+          'password': enteredPassword,
+        }),
+      );
+      if (response.body == "Success") {
+        Navigator.pushReplacementNamed(context, '/project_selection');
+      } else {
+        print('Server returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -21,36 +50,18 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
+              controller: _emailController,
+              decoration: InputDecoration(labelText: 'Email'),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 8.0),
             TextField(
               controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(labelText: 'Password'),
             ),
-            SizedBox(height: 32.0),
+            SizedBox(height: 8.0),
             ElevatedButton(
-              onPressed: () {
-                // Default login values for demonstration purposes
-                String defaultUsername = 'admin';
-                String defaultPassword = 'admin';
-
-                String enteredUsername = _usernameController.text;
-                String enteredPassword = _passwordController.text;
-
-                // Check if entered credentials match the default values
-                if (enteredUsername == defaultUsername && enteredPassword == defaultPassword) {
-                  // Successful login, navigate to the project selection page
-                  Navigator.pushReplacementNamed(context, '/project_selection');
-                } else {
-                  // Failed login, show an error message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Invalid username or password')),
-                  );
-                }
-              },
+              onPressed: _login,
               child: Text('Login'),
             ),
             ElevatedButton(

@@ -1,14 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for
+from flask_cors import CORS
 import psycopg2
 import random
+import json
 
 app = Flask(__name__)
+CORS(app)
 
 db_params = {
-    'host': 'scrum-postgres',
-    'database': 'scrumbot',
+    'host': 'autoscrum.coheqcprynnh.us-east-1.rds.amazonaws.com',
+    'database': 'scrum_bot',
     'user': 'postgres',
-    'password': 'scrumbotagent'
+    'password': 'postgres'
 }
 try:
     conn = psycopg2.connect(**db_params)
@@ -17,16 +20,23 @@ try:
 except Exception as e:
     print(f"Failed to connect to database. The following error occoured: {str(e)}")
 
-
+@app.route('/hi', methods=['GET'])
+def say_hi():
+    return "hi"
 #Endpoint for signup
 @app.route('/signup', methods=['POST'])
 def signup():
-    firstname = str(request.form['first_name'])
-    lastname = str(request.form['last_name'])
-    email = str(request.form['email'])
-    phone = str(request.form['phone'])
-    password = str(request.form['password'])
-    dob = str(request.form['dob'])
+    if request.method == 'POST':
+        data = request.get_json()
+
+        # Extracting values from JSON data
+        firstname = str(data.get('first_name'))
+        lastname = str(data.get('last_name'))
+        email = str(data.get('email'))
+        phone = str(data.get('phone'))
+        password = str(data.get('password'))
+        dob = str(data.get('dob'))
+        print(data)
     result = 1
     while result != 0:
         userid = random.randint(1000000, 9999999)
@@ -52,8 +62,9 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
         try:
             sql_query = "SELECT COUNT(*) FROM user_login WHERE email = %s and password = %s"
             cursor.execute(sql_query, (email, password,))
