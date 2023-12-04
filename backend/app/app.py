@@ -1,14 +1,30 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from agents.agent import AgentInstance
 import psycopg2
 import random
+import os
+import json
+import requests
 
+def find_changed_attributes(old_dict, new_dict):
+    changed_attributes = {}
+
+    for key, new_value in new_dict.items():
+        old_value = old_dict.get(key, None)
+
+        if old_value is not None and old_value != new_value:
+            changed_attributes[key] = (new_value)
+
+    return changed_attributes
+
+DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 
 db_params = {
-    'host': 'scrum-postgres',
-    'database': 'scrumbot',
+    'host': 'autoscrum.coheqcprynnh.us-east-1.rds.amazonaws.com',
+    'database': 'scrum-agent',
     'user': 'postgres',
-    'password': 'scrumbotagent'
+    'password': 'postgres'
 }
 try:
     conn = psycopg2.connect(**db_params)
@@ -17,16 +33,21 @@ try:
 except Exception as e:
     print(f"Failed to connect to database. The following error occoured: {str(e)}")
 
+#test endpoint
+@app.route('/hi', methods=['GET'])
+def say_hi():
+    return "hi"
 
 #Endpoint for signup
 @app.route('/signup', methods=['POST'])
 def signup():
-    firstname = str(request.form['first_name'])
-    lastname = str(request.form['last_name'])
-    email = str(request.form['email'])
-    phone = str(request.form['phone'])
-    password = str(request.form['password'])
-    dob = str(request.form['dob'])
+    payload = request.json
+    firstname = payload.get("first_name")
+    lastname = payload.get("last_name")
+    email = payload.get("email")
+    phone = payload.get("phone")
+    password = payload.get("password")
+    dob = payload.get("dob")
     result = 1
     while result != 0:
         userid = random.randint(1000000, 9999999)
@@ -43,32 +64,43 @@ def signup():
             user_login_query = f"INSERT INTO user_login (user_id, email, password) VALUES ('{userid}', '{email}', '{password}')"
             cursor.execute(user_login_query)
             conn.commit()
-            return "Success"
+            return jsonify({'status': 'success', 'value': str(userid)})
         else:
-            return "Failure. User already Exists."
+            return jsonify({'status': 'failure', 'value': 'User already exists'})
+    except psycopg2.Error as e:
+            conn.rollback()
     except Exception as e:
-        return f"Failure. The following error occured with the database: {str(e)}"
+        return jsonify({'status': 'failure', 'value': str(e)})
+    
 
 @app.route('/login', methods=['POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        payload = request.json
+        email = payload.get('email')
+        password = payload.get('password')
         try:
             sql_query = "SELECT COUNT(*) FROM user_login WHERE email = %s and password = %s"
             cursor.execute(sql_query, (email, password,))
             result = cursor.fetchone()[0]
             if result != 0:
-                return "Success"
+                sql_query = "SELECT user_id FROM user_login WHERE email = %s and password = %s"
+                cursor.execute(sql_query, (email, password,))
+                user_id = cursor.fetchone()[0]
+                return jsonify({'status': 'success', 'value':str(user_id)})
             else:
-                return "Failure. User does not exist."
+                return jsonify({'status':'failure', 'value':'User not found'})
+        except psycopg2.Error as e:
+            conn.rollback()
         except Exception as e:
-            return f"Failure. The following error occured with the database: {str(e)}."
+            return jsonify({'status':'failure', 'value': str(e)})
+        
         
 @app.route("/my_projects", methods=["POST"])
 def my_project():
     try:
-        userid = str(request.form['user_id'])
+        payload = request.json
+        userid = payload.get('user_id')
         query = """
                 SELECT DISTINCT p.project_id
                 FROM projects p
@@ -78,15 +110,19 @@ def my_project():
             """
         cursor.execute(query, (userid,))
         project_ids = [result[0] for result in cursor.fetchall()]
-        return project_ids
+        return jsonify({'status': 'success', 'value':project_ids})
+    except psycopg2.Error as e:
+        conn.rollback()
     except Exception as e:
-        return f"Failure. The following error occured: {str(e)}"
+        return jsonify({'status': 'failure', 'value':str(e)})
+    
 
 @app.route("/my_issues", methods=["POST"])
 def my_issues():
     try:
-        userid = str(request.form['user_id'])
-        projectid = str(request.form['project_id'])
+        payload = request.json
+        userid = payload.get('user_id')
+        projectid = payload.get('project_id')
         query = """
                 SELECT
                     i.issue_id,
@@ -106,14 +142,18 @@ def my_issues():
         cursor.execute(query, (projectid, userid))
         columns = [desc[0] for desc in cursor.description]
         issues = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        return issues
+        return jsonify({'status': 'success', 'value': issues})
+    except psycopg2.Error as e:
+        conn.rollback()
     except Exception as e:
-        return f"Failure. The following error occurred: {str(e)}"
+        return jsonify({'status': 'failure', 'value': str(e)})
+    
 
 @app.route('/issue_detail', methods=['POST'])
 def issue_detail():
     try:
-        issue_id = str(request.form['issue_id'])
+        payload = request.json
+        issue_id = payload.get('issue_id')
         query = """
             SELECT
                 i.issue_id,
@@ -131,28 +171,82 @@ def issue_detail():
         cursor.execute(query, (issue_id,))
         columns = [desc[0] for desc in cursor.description]
         issue_details = dict(zip(columns, cursor.fetchone()))
-        return issue_details
+        return jsonify({'status': 'success', 'value':issue_details})
+    except psycopg2.Error as e:
+        conn.rollback()
     except Exception as e:
-        return f"Failure. The following error occured: {str(e)}"
+        return jsonify({"status":'failure', 'value':str(e)})
     
+    
+@app.route('/get_all_issues', methods=['POST'])
+def get_all_issues():
+    try:
+        payload = request.json
+        project_id = payload.get('project_id')
+        query = f"SELECT issue_id, issue_title, issue_desc FROM issue WHERE project_id = {project_id}"
+        cursor.execute(query)
+        issues_data = cursor.fetchall()
+        issues_list = [{'issue_id': row[0], 'issue_title': row[1], 'issue_desc': row[2]} for row in issues_data]
+        return jsonify({'status': 'success', 'value':issues_list})
+    except Exception as e:
+        return jsonify({'status': 'failure', 'value':str(e)})
+
+@app.route('/create_project', methods=['POST'])
+def create_project():
+    try:
+        payload = request.json
+        project_title = payload.get('project_title')
+        project_desc = payload.get('project_desc')
+        id_exists = 1
+        while id_exists:
+            project_id = str(random.randint(1000000, 9999999))
+            id_exists_query = f"SELECT COUNT(*) FROM projects WHERE project_id = '{project_id}'"
+            cursor.execute(id_exists_query)
+            id_exists = cursor.fetchone()[0]
+        create_project_quert =f"INSERT INTO projects (project_id, project_title, project_desc) values ('{project_id}', '{project_title}', '{project_desc}')"
+        cursor.execute(create_project_quert)
+        conn.commit()
+        return jsonify({'status': 'success', 'value':str(project_id)})
+    except psycopg2.Error as e:
+        conn.rollback()
+    except Exception as e:
+        return jsonify({'status':'failure', 'value':str(e)}) 
 
 @app.route('/create_issue', methods=['POST'])
 def create_issue():
     try:
-        project_id = request.form["project_id"]
-        reporter_id = request.form["reporter_id"]
-        assignee_id = request.form["assignee_id"] 
-        issue_title = request.form["issue_title"]
-        issue_description = request.form["issue_description"]
-        priority = request.form["priority"]
-        story_points = 0
+        payload = request.json
+        reporter = payload.get("reporter_id")
+        project_id = payload.get("project_id")
+        user_input = f"The reporter {reporter} has asked for the creation of a new issue for the project {project_id} with the following details: "+payload.get("user_input")
+        agent_instance = AgentInstance(action="create_issue")
+        with open(os.path.join(DIR, 'agents', 'prompt', 'create_issue.txt'), 'r') as f:
+            lines = f.readlines()
+            task = "\n".join(lines)
+        f.close()
+        project_query = """SELECT project_title FROM projects WHERE project_id = %s;"""
+        cursor.execute(project_query, (project_id,))
+        project_name = cursor.fetchone()[0]
+        project_name = "_".join(project_name.lower().split(' '))
+        with open(os.path.join(DIR,'assets', 'projects', project_name+'.txt'), 'r') as f:
+            lines = f.readlines()
+            context = "\n".join(lines)
+        agent_respose = agent_instance.ask_gpt(context=context, task=task, user_input=user_input)
+        agent_respose = json.loads(agent_respose)
+
+        reporter_id = agent_respose["reporter_id"]
+        assignee_id = agent_respose["assignee_id"] 
+        issue_title = agent_respose["issue_title"]
+        issue_description = agent_respose["issue_description"].replace("\'", "")
+        priority = agent_respose["priority"]
+        story_points = agent_respose["story_points"]
         id_exists = 1
         while id_exists:
             issue_id = random.randint(1000000, 9999999)
             sql_query = f"SELECT COUNT(*) FROM issue WHERE issue_id = '{issue_id}'"
             cursor.execute(sql_query)
             id_exists = cursor.fetchone()[0]
-        sql_query = f"INSERT INTO issue (issue_id, project_id, issue_title, issue_description, reporter_id, assignee_id, priority, story_points) VALUES ('{issue_id}', '{project_id}', '{issue_title}', '{issue_description}', '{reporter_id}', '{assignee_id}', '{priority}', '{story_points}')"
+        sql_query = f"INSERT INTO issue (issue_id, project_id, issue_title, issue_desc, reporter_id, assignee_id, priority, story_points) VALUES ('{issue_id}', '{project_id}', '{issue_title}', '{issue_description}', '{reporter_id}', '{assignee_id}', '{priority}', '{story_points}')"
         cursor.execute(sql_query)
         conn.commit()
         id_exists = 1
@@ -164,110 +258,120 @@ def create_issue():
         assignment_query = f"INSERT INTO assignment (assignment_id, assignee_id, issue_id) VALUES ('{assignment_id}', '{assignee_id}', '{issue_id}')"
         cursor.execute(assignment_query)
         conn.commit()
-        return "Success"
+        return jsonify({'status': 'success', 'value':str(issue_id)})
+    except psycopg2.Error as e:
+        conn.rollback()
     except Exception as e:
-        return f"Failure. The following error occured with the database: {str(e)}"
+        return jsonify({'status': 'failure', 'value':str(e)})
     
 @app.route("/update_issue", methods=["POST"])
 def update_issue():
-    issue_id = str(request.form["issue_id"])
-    update_fields = []
-    update_values = []
-    sql_query = f"SELECT * FROM ISSUES WHERE issue_id = {issue_id}"
+    payload = request.json
+    issue_id = payload.get("issue_id")
+    user_input = payload.get("user_input")
+    data = {'issue_id': issue_id}
+    headers = {'Content-Type': 'application/json'}
+    current_issue = requests.post(url='http://localhost:8080/issue_detail', json=data, headers=headers).json()
+    issue_details_string = current_issue
+    sql_query = f"SELECT * FROM issue WHERE issue_id = {issue_id}"
     cursor.execute(sql_query)
     result = cursor.fetchone()[0]
     try:
         if result:
-            for i in range(len(update_fields)):
-                update_field = update_fields[i]
-                update_value = update_values[i]
-                update_query = f"UPDATE TABLE issue SET {update_field} = '{update_value}' WHERE issue_id = '{issue_id}'"
-                cursor.execute(update_query)
+            context = f"The current state of the issue is as follows: {issue_details_string}"
+            with open(os.path.join(DIR, 'agents', 'prompt', 'update_issue.txt'), 'r') as f:
+                lines = f.readlines()
+                task = "\n".join(lines)
+                task = "You need to update the details of the issue and return a updated json. {task}"
+            f.close()
+            agent_instance = AgentInstance(action="update_issue")
+            agent_respose = agent_instance.ask_gpt(context=context, task=task, user_input=user_input)
+            updated_issue = json.loads(agent_respose)
+            changes = find_changed_attributes(old_dict=current_issue, new_dict=updated_issue)
+            for changed_atrribute in changes.keys():
+                attrbute = changed_atrribute
+                value = changes[changed_atrribute]
+                value = str(value).replace("'", "")
+                udpate_query =f"UPDATE issue SET {attrbute} = '{value}' WHERE issue_id = '{issue_id}'"
+                cursor.execute(udpate_query)
                 conn.commit()
-            return "Success"
+                if attrbute == "assignee_id":
+                    change_assignment = f"update assignment set assignee_id = '{value}' where issue_id = '{issue_id}'"
+                    cursor.execute(change_assignment)
+                    conn.commit()
+            return jsonify({'status': 'success', 'value':str(issue_id)})
         else:
-            return "Failure. The mentioned issue does not exist."
+            return jsonify({'status': 'failure', 'value':'issue not found'})
     except Exception as e:
-        return f"Failure. The following error ouccured: {str(e)}"
+        return jsonify({'status': 'failure', 'value':str(e)})
 
 @app.route("/delete_issue", methods=["POST"])
 def delete_issue():
-    issue_id = str(request.form["issue_id"])
-    sql_query = f"SELECT * FROM ISSUES WHERE issue_id = {issue_id}"
+    payload = request.json
+    issue_id = payload.get('issue_id')
+    sql_query = f"SELECT * FROM issue WHERE issue_id = {issue_id}"
     cursor.execute(sql_query)
     result = cursor.fetchone()[0]
     try:
         if result:
+            delete_assignment = f"DELETE FROM assignment where issue_id = {issue_id}"
+            cursor.execute(delete_assignment)
+            conn.commit()
             delete_issue = f"DELETE FROM issue WHERE issue_id = {issue_id}"
             cursor.execute(delete_issue)
             conn.commit()
-            return "Success"
+            return jsonify({'status': 'success', 'value':str(issue_id)})
         else:
-            return "Failed. The mentioned issue does not exist."
+            return jsonify({'status': 'failure', 'value':'issue not found'})
+    except psycopg2.Error as e:
+        conn.rollback()
     except Exception as e:
-        return f"Failed. The following error occured. {str(e)}"
-
-@app.route("/update_priority", methods=["POST"])
-def update_priority():
-    issue_id = str(request.form["issue_id"])
-    priority = str(request.form["priority"])
-    sql_query = f"SELECT * FROM ISSUES WHERE issue_id = {issue_id}"
-    cursor.execute(sql_query)
-    result = cursor.fetchone()[0]
-    try:
-        if result:
-            update_prio = f"UPDATE TABLE issue SET priority = '{priority}' WHERE issue_id = '{issue_id}'"
-            cursor.execute(update_prio)
-            conn.commit()
-            return "Success"
-        else:
-            return "Failed. The mentioned issue does not exist"
-    except Exception as e:
-        return f"Failed. The following error occoured: {str(e)}"
-
-@app.route("/update_story_points", methods=["POST"])
-def update_story_priority():
-    issue_id = str(request.form["issue_id"])
-    story_points = str(request.form["story_points"])
-    sql_query = f"SELECT * FROM ISSUES WHERE issue_id = {issue_id}"
-    cursor.execute(sql_query)
-    result = cursor.fetchone()[0]
-    try:
-        if result:
-            update_prio = f"UPDATE TABLE issue SET story_points = '{story_points}' WHERE issue_id = '{issue_id}'"
-            cursor.execute(update_prio)
-            conn.commit()
-            return "Success"
-        else:
-            return "Failed. The mentioned issue does not exist"
-    except Exception as e:
-        return f"Failed. The following error occoured: {str(e)}"
+        return jsonify({'status': 'failure', 'value':str(e)})
 
 @app.route("/scrum_update", methods = ["POST"])
 def scrum_update():
-    scrum_update = str(request.form["scrum_update"])
-    #TODO: Process the scrum update (AI agent work).
-
-@app.route("/assign_issue", methods = ["POST"])
-def assign_issue():
     try:
-        issue_id = request.form["issue_id"]
-        assignee_id = request.form["assignee_id"]
-        issue_exists = f"SELECT count(*) FROM issue WHERE issue_id = '{issue_id}'"
-        cursor.execute(issue_exists)
-        result = cursor.fetchone()[0]
-        if result:
-            update_issue = f"UPDATE table issue set assignee_id = '{assignee_id}' where issue_id = '{issue_id}'"
-            cursor.execute(update_issue)
-            conn.commit()
-            update_assignment = f"UPDATE table assignment set assignee_id = '{assignee_id}' where issue_id = '{issue_id}'"
-            cursor.execute(update_assignment)
-            conn.commit()
-        else:
-            return "Failed. The mentioned issue does not exist."
+        payload = request.json
+        project_id = payload.get("project_id")
+        filename = payload.get("filename")
+        filepath = os.path.join(DIR, 'assets', 'updates', filename)
+        with open(filepath, 'r') as f:
+            lines = f.readlines()
+            scrum_content = "\n".join(lines)
+        f.close()
+        context = scrum_content
+        with open(os.path.join(DIR, 'agents', 'prompt', 'process_scrum_content.txt'), 'r') as f:
+                    lines = f.readlines()
+                    task = "\n".join(lines)
+                    task = f"You need to process the scum update that was discussed by the team. {task}"
+        f.close()
+        agent = AgentInstance(action="process_scrum_update")
+        agent_response = agent.ask_gpt(context = context, task=task, user_input = "Process the provided scrum update")
+        json_data = json.loads(agent_response)
+        all_tasks = list(json_data)
+        responses = []
+        for task in all_tasks:
+            current_task = task.get("task")
+            if current_task == "create_issue":
+                reporter_id = task.get("reporter_id")
+                task_description = task.get("task_description")
+                data = {"reporter_id": reporter_id, "project_id": project_id, "user_input": task_description}
+                headers = {'Content-Type': 'application/json'}
+                response = requests.post('http://localhost:8080/create_issue', json=data, headers=headers)
+                responses.append(response.text)
+            elif current_task == "update_issue":
+                issue_id = task.get("issue_id")
+                task_description = task.get("task_description")
+                data = {"issue_id": issue_id, "user_input": task_description}
+                headers = {'Content-Type': 'application/json'}
+                response = requests.post('http://localhost:8080/update_issue', json=data, headers=headers)
+                responses.append(response.text)
+        return jsonify({'status': 'success', 'value':filename})
+    except psycopg2.Error as e:
+        conn.rollback()
     except Exception as e:
-        return f"Failed. The following error occured with the database. {str(e)}"
+        return jsonify({'status': 'failure', 'value':str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, port=8080, host='0.0.0.0')
     

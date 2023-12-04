@@ -5,10 +5,10 @@ services:
       context: ..
       dockerfile: Dockerfile
     volumes:
-      - ..:/app
+      - ../app:/app
     command: python app.py
     ports:
-      - "5000:5000"
+      - "8080:8080"
     networks:
       - scrum-network
 
