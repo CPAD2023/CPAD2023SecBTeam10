@@ -1,7 +1,10 @@
 #application
 psycopg2
 flask
+requests
+json
 
 #ai-agent
 openai
 langchain
+python-dotenv

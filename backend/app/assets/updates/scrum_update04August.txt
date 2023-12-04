@@ -1,0 +1,4 @@
+3456789 (Alice): I have an update on issue 6266909, i feel we might need 7 story points to complete it.
+4567890 (Bob): Sure, we can update the issue to increase the story points. We were also informed that this issue has high priority, we might have to update that as well.
+3456789 (Alice): Sure! While we are at it, we can also create a new issue to identify the end points. Bob i guess you can work on this and this is a medium priority.
+4567890 (Bob): Yeah, assign this to me and also put it at 3 story points effort.

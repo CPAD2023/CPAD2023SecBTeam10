@@ -1,0 +1,22 @@
+Here is what you do to create the new issue:
+- Analyse the requirement of the user with respect to the project description.
+- Create a suitable title for the ticket.
+- Create a detailed description for the ticket. In this description, you also have to describe the definition of done - generate the defition of done based on your knowledge of best practices.
+- Identify the following from the user input the following parameters: project_id, reporter_id, assignee_id, priority, story_points. If you can't find the value for any of these attributes, you can go ahead and assume a python None for that attribute.
+- Finally create a json in the following format:{'project_id': '<project_id>', 'reporter_id': '<reporter_id>', 'assignee_id': '<assignee_id>', 'issue_title': '<issue_title>', 'issue_description': '<issue_description>', 'priority': '<priority>', 'story_points': '<story_points>'}
+- the output should be the json only. Do not add any other text in your response. Maintain the formatting of the json as suggested.
+- Keep the follwing in mind when writing the description for the issue. You need to make the description detailed. You can use your knowledge in the domain and always specify the done criteria.
+- Default value for priority is 'Medium'. use this value if there is no value given in the user input for priority.
+
+For Example:
+If the user 112312 for the project 101901 asks "A new issue has to be created to migrate existing project to a new repository. This is high priority task. Assign it to 101110 with 2 story points."
+Then your output should be
+{
+    "project_id": "101901",
+    "reporter_id": "112312",
+    "assignee_id": "101110",
+    "issue_title": "Migrate to new repository",
+    "issue_description": "All the code has to be safely migrated to a new repository given that the old repository was a compilation of multiple services. To make it more decoupled we are migrating individual services to new repositories. There is should be no loss of data or service availavility. Done criteria: 1. Code is available in the new repository. 2. All the services are accessible even when hosted from the new repository. 3. The code is reviewed by a peer from the team.",
+    "priority": "high",
+    "story_points": "2"
+}
