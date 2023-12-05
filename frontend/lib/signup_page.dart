@@ -121,26 +121,28 @@ class _SignupPageState extends State<SignupPage> {
                             Container(
                               padding: EdgeInsets.all(8.0),
                               decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(color:  Color.fromRGBO(143, 148, 251, 1)))
+                                  // border: Border(bottom: BorderSide(color:  Color.fromRGBO(143, 148, 251, 1)))
                               ),
                               child: Column(
                                 children : [
                               TextField(
-                                controller: _emailController,
+                                controller: _firstNameController,
                                 decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: "First Name",
                                     hintStyle: TextStyle(color: Colors.grey[700])
                                 ),
                               ),
+                                  const Divider(color: Color.fromRGBO(143, 148, 251, 1), height: 1),
                               TextField(
-                                controller: _emailController,
+                                controller: _lastNameController,
                                 decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: "Last Name",
                                     hintStyle: TextStyle(color: Colors.grey[700])
                                 ),
                               ),
+                                  const Divider(color: Color.fromRGBO(143, 148, 251, 1), height: 1),
                                   TextField(
                                     controller: _emailController,
                                     decoration: InputDecoration(
@@ -149,46 +151,43 @@ class _SignupPageState extends State<SignupPage> {
                                         hintStyle: TextStyle(color: Colors.grey[700])
                                     ),
                                   ),
+                                  const Divider(color: Color.fromRGBO(143, 148, 251, 1), height: 1),
                                   TextField(
-                                    controller: _emailController,
+                                    controller: _phoneController,
                                     decoration: InputDecoration(
                                         border: InputBorder.none,
                                         hintText: "Phone Number",
                                         hintStyle: TextStyle(color: Colors.grey[700])
                                     ),
                                   ),
+                                  const Divider(color: Color.fromRGBO(143, 148, 251, 1), height: 1),
                                   TextField(
-                                    controller: _emailController,
+                                    controller: _dobController,
                                     decoration: InputDecoration(
                                         border: InputBorder.none,
                                         hintText: "DOB (MM/DD/YYYY)",
                                         hintStyle: TextStyle(color: Colors.grey[700])
                                     ),
                                   ),
-
+                                  const Divider(color: Color.fromRGBO(143, 148, 251, 1), height: 1),
+                                  TextField(
+                                    controller: _passwordController,
+                                    obscureText: true,
+                                    decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        hintText: "Password",
+                                        hintStyle: TextStyle(color: Colors.grey[700])
+                                    ),
+                                  ),
                               ]
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.all(8.0),
-                              child: TextField(
-                                controller: _passwordController,
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: "Password",
-                                    hintStyle: TextStyle(color: Colors.grey[700])
-                                ),
-                              ),
-                            )
                           ],
                         ),
                       )),
                       SizedBox(height: 40,),
                       FadeInUp(duration: Duration(milliseconds: 1900), child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/signup');
-                        },
+                        onPressed: _signup,
                         style: ElevatedButton.styleFrom(
                           primary: Color.fromRGBO(143, 148, 251, 1),
                           onPrimary: Colors.white,
