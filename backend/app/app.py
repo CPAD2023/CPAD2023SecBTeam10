@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_cors import CORS
 from agents.agent import AgentInstance
 import psycopg2
 import random
@@ -19,6 +20,7 @@ def find_changed_attributes(old_dict, new_dict):
 
 DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
+CORS(app)
 
 db_params = {
     'host': 'autoscrum.coheqcprynnh.us-east-1.rds.amazonaws.com',
