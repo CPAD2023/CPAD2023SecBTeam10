@@ -1,5 +1,3 @@
--- Create the scrum-bot database
-CREATE DATABASE scrum_bot;
 
 -- Connect to the scrum-bot database
 \c scrum_bot;
@@ -47,3 +45,4 @@ CREATE TABLE assignment (
     issue_id INT REFERENCES issue(issue_id),
     assignee_id INT REFERENCES users(user_id)
 );
+

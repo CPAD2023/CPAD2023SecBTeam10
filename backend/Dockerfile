@@ -2,9 +2,9 @@ FROM python:3.10
 
 WORKDIR /app
 
-COPY . /app
+COPY /app /app
 
-EXPOSE 5000
+EXPOSE 8080
 
 RUN pip3 install -r requirements.txt
 

@@ -1,0 +1,5 @@
+'1234567' (John): 'Here is the update from my end. I do not have any pending issues from my end. I have some capacity and I can take up new task'
+'3456789' (Alice): 'I have a new issue to be created. This is for creating a node js set up. I feel this has to be taken on a high priority. We can assign this task to John probably'
+'1234567' (John): 'Yeah I can take up that task and I guess it would take two 3 points for me to complete it.'
+'8622742' (Bob): 'I have an update on issue 9140054, we have identified blue and white as suitable colurs for our project, this has to be updated in the issue description'
+'3456789' (Alice): 'Amazing, then we can create one more issue on medium priority to start creating a nav-bar, I can take this up myself. I guess 3 story points should be sufficient to complete this.'

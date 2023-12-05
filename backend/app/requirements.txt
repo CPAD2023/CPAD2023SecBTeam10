@@ -1,7 +1,9 @@
 #application
 psycopg2
-flask
+Flask
+
 
 #ai-agent
 openai
 langchain
+python-dotenv
