@@ -12,13 +12,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/splash', // Set splash as the initial route
+      initialRoute: '/splash',
       routes: {
-        '/splash': (context) => SplashScreen(), // Add the splash screen route
+        '/splash': (context) => SplashScreen(),
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignupPage(),
-        '/project_selection': (context) => ProjectSelectionPage(),
-        '/home': (context) => HomeScreen(),
+        '/project_selection': (context) {
+          final _userid = ModalRoute.of(context)?.settings.arguments as String;
+          return ProjectSelectionPage(userId: _userid);
+        },
+        // '/home': (context) => HomeScreen(),
       },
     );
   }

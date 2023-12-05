@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:animate_do/animate_do.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,9 +12,19 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  String _userid = '';
+
+  String generateRandomSessionId() {
+    final random = Random();
+    final sessionId = List.generate(
+      6,
+          (index) => random.nextInt(10),
+    ).join('');
+    return sessionId;
+  }
 
   Future<void> _login() async {
-    String apiUrl = 'http://127.0.0.1:5000/login';
+    String apiUrl = 'http://52.23.94.89:8080/login';
     String enteredEmail = _emailController.text;
     String enteredPassword = _passwordController.text;
 
@@ -21,14 +33,33 @@ class _LoginPageState extends State<LoginPage> {
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': enteredEmail,
-          'password': enteredPassword,
+          "email": enteredEmail,
+          "password": enteredPassword,
         }),
       );
-      if (response.body == "Success") {
-        Navigator.pushReplacementNamed(context, '/project_selection');
+      //for debugging
+      print('Request: ${response.request}');
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      if (data.containsKey('status') && data['status'] == "success") {
+        // Convert the 'userid' to a string
+        String userId = data['value'].toString();
+
+        setState(() {
+          _userid = userId;
+        });
+        Navigator.pushReplacementNamed(
+          context,
+          '/project_selection',
+          arguments: _userid,
+        );
+      } else if (data.containsKey('status') && data['status'] == "failure") {
+        print('Login failed: ${data['status']}');
       } else {
-        print('Server returned status code: ${response.statusCode}');
+        print('Unexpected response format');
       }
     } catch (e) {
       print('Error: $e');
@@ -36,43 +67,189 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login Page'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          child: Container(
+            child: Column(
+              children: <Widget>[
+                Container(
+                  height: 400,
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage('assets/images/background.png'),
+                          fit: BoxFit.fill
+                      )
+                  ),
+                  child: Stack(
+                    children: <Widget>[
+                      Positioned(
+                        left: 30,
+                        width: 80,
+                        height: 200,
+                        child: FadeInUp(duration: Duration(seconds: 1), child: Container(
+                          decoration: BoxDecoration(
+                              image: DecorationImage(
+                                  image: AssetImage('assets/images/light-1.png')
+                              )
+                          ),
+                        )),
+                      ),
+                      Positioned(
+                        left: 140,
+                        width: 80,
+                        height: 150,
+                        child: FadeInUp(duration: Duration(milliseconds: 1200), child: Container(
+                          decoration: BoxDecoration(
+                              image: DecorationImage(
+                                  image: AssetImage('assets/images/light-2.png')
+                              )
+                          ),
+                        )),
+                      ),
+                      Positioned(
+                        child: FadeInUp(duration: Duration(milliseconds: 1600), child: Container(
+                          margin: EdgeInsets.only(top: 50),
+                          child: Center(
+                            child: Text("Login", style: TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold),),
+                          ),
+                        )),
+                      )
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(30.0),
+                  child: Column(
+                    children: <Widget>[
+                      FadeInUp(duration: Duration(milliseconds: 1800), child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Color.fromRGBO(143, 148, 251, 1)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Color.fromRGBO(143, 148, 251, .2),
+                                  blurRadius: 20.0,
+                                  offset: Offset(0, 10)
+                              )
+                            ]
+                        ),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              padding: EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(color:  Color.fromRGBO(143, 148, 251, 1)))
+                              ),
+                              child: TextField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: "Email",
+                                    hintStyle: TextStyle(color: Colors.grey[700])
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(8.0),
+                              child: TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: "Password",
+                                    hintStyle: TextStyle(color: Colors.grey[700])
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      )),
+                      SizedBox(height: 30,),
+                      FadeInUp(duration: Duration(milliseconds: 1900), child: ElevatedButton(
+                        onPressed: _login, // Add this line
+                        style: ElevatedButton.styleFrom(
+                          primary: Color.fromRGBO(143, 148, 251, 1),
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Container(
+                          height: 50,
+                          child: Center(
+                            child: Text("Login", style: TextStyle(fontWeight: FontWeight.bold),),
+                          ),
+                        ),
+                      )),
+                      SizedBox(height: 40,),
+                      FadeInUp(duration: Duration(milliseconds: 1900), child: ElevatedButton(
+                        onPressed: () {
+                            Navigator.pushNamed(context, '/signup');
+                          },
+                        style: ElevatedButton.styleFrom(
+                          primary: Color.fromRGBO(143, 148, 251, 1),
+                          onPrimary: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Container(
+                          height: 50,
+                          child: Center(
+                            child: Text("SignUp", style: TextStyle(fontWeight: FontWeight.bold),),
+                          ),
+                        ),
+                      )),
+
+                    ],
+                  ),
+                )
+              ],
             ),
-            SizedBox(height: 8.0),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: 'Password'),
-            ),
-            SizedBox(height: 8.0),
-            ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/signup');
-              },
-              child: Text('Signup'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        )
     );
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: Text('Login Page'),
+  //     ),
+  //     body: Padding(
+  //       padding: EdgeInsets.all(16.0),
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           TextField(
+  //             controller: _emailController,
+  //             decoration: InputDecoration(labelText: 'Email'),
+  //           ),
+  //           SizedBox(height: 8.0),
+  //           TextField(
+  //             controller: _passwordController,
+  //             obscureText: true,
+  //             decoration: InputDecoration(labelText: 'Password'),
+  //           ),
+  //           SizedBox(height: 8.0),
+  //           ElevatedButton(
+  //             onPressed: _login,
+  //             child: Text('Login'),
+  //           ),
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               Navigator.pushNamed(context, '/signup');
+  //             },
+  //             child: Text('Signup'),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }

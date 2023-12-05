@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/scrum_icon.png',  // Adjust the path and file name accordingly
+                'assets/images/scrum_icon.png',  // Adjust the path and file name accordingly
                 width: 100.0,  // Adjust the size of your custom icon
               ),
               SizedBox(height: 16.0),
