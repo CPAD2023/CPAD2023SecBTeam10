@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
+import 'issues_page.dart'; // Import the IssuesPage
 
 class ProjectSelectionPage extends StatefulWidget {
   final String userId;
@@ -135,15 +136,23 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
                     value: selectedProject,
                     items: projects
                         .map((project) =>
-                        DropdownMenuItem(value: project, child: Text(project)))
+                            DropdownMenuItem(value: project, child: Text(project)))
                         .toList(),
                     onChanged: (selectedItem) {
                       setState(() {
                         selectedProject = selectedItem;
                       });
 
-                      // Handle the selected project
-                      print('Selected Project: $selectedProject');
+                      // Navigate to the IssuesPage with the selected project and user IDs
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => IssuesPage(
+                            userId: widget.userId,
+                            projectId: selectedProject!,
+                          ),
+                        ),
+                      );
                     },
                     hint: Text('Select Project'),
                   ),
