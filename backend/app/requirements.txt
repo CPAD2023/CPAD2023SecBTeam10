@@ -7,3 +7,4 @@ Flask
 openai
 langchain
 python-dotenv
+flask-cors
