@@ -6,6 +6,7 @@ import random
 import os
 import json
 import requests
+from flask_cors import CORS
 
 def find_changed_attributes(old_dict, new_dict):
     changed_attributes = {}
@@ -34,6 +35,7 @@ try:
     print("Successfully connected to database")
 except Exception as e:
     print(f"Failed to connect to database. The following error occoured: {str(e)}")
+
 
 #test endpoint
 @app.route('/hi', methods=['GET'])
@@ -81,6 +83,7 @@ def login():
         payload = request.json
         email = payload.get('email')
         password = payload.get('password')
+
         try:
             sql_query = "SELECT COUNT(*) FROM user_login WHERE email = %s and password = %s"
             cursor.execute(sql_query, (email, password,))
