@@ -17,7 +17,7 @@ class _SignupPageState extends State<SignupPage> {
   TextEditingController _passwordController = TextEditingController();
 
   Future<void> _signup() async {
-    String apiUrl = 'http://127.0.0.1:5000/signup'; // Replace with your actual backend URL
+    String apiUrl = 'http://52.23.94.89:8080/signup';
 
     try {
       final response = await http.post(
