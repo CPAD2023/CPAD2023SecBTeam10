@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class IssuesPage extends StatefulWidget {
   final String userId;
@@ -328,18 +327,18 @@ class _IssuesPageState extends State<IssuesPage> {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
-      String filePath = result.files.single.path ?? '';
+      
       String fileName = result.files.single.name;
 
       // Call the scrumUpdate function with the selected file path and name
-      scrumUpdate(filePath, fileName);
+      scrumUpdate(fileName);
     } else {
       // User canceled file picking
       print('User canceled file picking');
     }
   }
 
-  Future<void> scrumUpdate(String filePath, String fileName) async {
+  Future<void> scrumUpdate(String fileName) async {
     final apiUrl = 'http://52.23.94.89:8080/scrum_update';
 
     try {
