@@ -7,6 +7,7 @@ import os
 import json
 import requests
 from flask_cors import CORS
+from rag import RetrivalAugmentedGeneration
 
 def find_changed_attributes(old_dict, new_dict):
     changed_attributes = {}
@@ -25,7 +26,7 @@ CORS(app)
 
 db_params = {
     'host': 'autoscrum.coheqcprynnh.us-east-1.rds.amazonaws.com',
-    'database': 'scrum-agent',
+    'database': 'scrum-bot',
     'user': 'postgres',
     'password': 'postgres'
 }
@@ -224,6 +225,9 @@ def create_issue():
         reporter = payload.get("reporter_id")
         project_id = payload.get("project_id")
         user_input = f"The reporter {reporter} has asked for the creation of a new issue for the project {project_id} with the following details: "+payload.get("user_input")
+        data = {"project_id": project_id}
+        headers = {"Content-Type": "application/json"}
+        current_issues = requests.post(url='http://localhost:8080/get_all_issues', json=data, headers=headers).json()["value"]
         agent_instance = AgentInstance(action="create_issue")
         with open(os.path.join(DIR, 'agents', 'prompt', 'create_issue.txt'), 'r') as f:
             lines = f.readlines()
@@ -242,7 +246,13 @@ def create_issue():
         reporter_id = agent_respose["reporter_id"]
         assignee_id = agent_respose["assignee_id"] 
         issue_title = agent_respose["issue_title"]
-        issue_description = agent_respose["issue_description"].replace("\'", "")
+
+        rag = RetrivalAugmentedGeneration()
+        rag.add_to_collection(issue_data=current_issues)
+        related_issues = rag.query(user_query=user_input)
+        rag.clean_collection()
+
+        issue_description = agent_respose["issue_description"].replace("\'", "") + "Related issues: " + related_issues
         priority = agent_respose["priority"]
         story_points = agent_respose["story_points"]
         id_exists = 1
@@ -266,6 +276,7 @@ def create_issue():
         return jsonify({'status': 'success', 'value':str(issue_id)})
     except psycopg2.Error as e:
         conn.rollback()
+        return jsonify({'status': 'failure', 'value': str(e)})
     except Exception as e:
         return jsonify({'status': 'failure', 'value':str(e)})
     
@@ -277,17 +288,16 @@ def update_issue():
     data = {'issue_id': issue_id}
     headers = {'Content-Type': 'application/json'}
     current_issue = requests.post(url='http://localhost:8080/issue_detail', json=data, headers=headers).json()
-    issue_details_string = current_issue
+    current_issue = current_issue["value"]
     sql_query = f"SELECT * FROM issue WHERE issue_id = {issue_id}"
     cursor.execute(sql_query)
     result = cursor.fetchone()[0]
     try:
         if result:
-            context = f"The current state of the issue is as follows: {issue_details_string}"
+            context = f"The current details of the issue is as follows: {current_issue}"
             with open(os.path.join(DIR, 'agents', 'prompt', 'update_issue.txt'), 'r') as f:
                 lines = f.readlines()
                 task = "\n".join(lines)
-                task = "You need to update the details of the issue and return a updated json. {task}"
             f.close()
             agent_instance = AgentInstance(action="update_issue")
             agent_respose = agent_instance.ask_gpt(context=context, task=task, user_input=user_input)
