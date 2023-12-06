@@ -1,7 +1,9 @@
 Here is what you do to create the new issue:
-- Analyse what the user wants to update in the existing issue. Be very precise about the updatations. Here are some common user requests and it's meanings:
-update the priority - means you need to update the priority attribute in the json
-assign this to '<user_id>' means you need to change the asignee_id attribute in the json
+- The user will provide a json of the issue details and he will ask you to update the issue. The user can ask one or more fields of the issue to be updated.
+- Analyse which attribute in the json, the user wants to update. Here are some common user requests and it's meanings:
+update or set the priority means you need to update the priority attribute in the json
+assign this issue to '<user_id>' means you need to change the asignee_id attribute in the json
+update the description means update the description attribute in the json
 add 'xyz' to done criteria means you need to aappend 'xyz' to existing issue_desc in the json
 update the story points means you need to update the story points attribute in the json
 - The user would have passed existing issue details in the form of a json. You need to update the respective field of the json and return the updated json back to the user.
