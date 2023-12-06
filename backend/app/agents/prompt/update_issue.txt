@@ -1,38 +1,8 @@
-Here is what you do to create the new issue:
-- The user will provide a json of the issue details and he will ask you to update the issue. The user can ask one or more fields of the issue to be updated.
-- Analyse which attribute in the json, the user wants to update. Here are some common user requests and it's meanings:
-update or set the priority means you need to update the priority attribute in the json
-assign this issue to '<user_id>' means you need to change the asignee_id attribute in the json
-update the description means update the description attribute in the json
-add 'xyz' to done criteria means you need to aappend 'xyz' to existing issue_desc in the json
-update the story points means you need to update the story points attribute in the json
-- The user would have passed existing issue details in the form of a json. You need to update the respective field of the json and return the updated json back to the user.
-- Stick to the format given in the example.
-- Do not add any other text to your response. You don't even have to start with "Sure, I'll do it" and all. Just return back the updated json.
-- Repeating this again, Don't even include one extra character other than the json. 
-
-For example:
-This is the json that describes the current state of the issue:
-{
-	"assignee_id": "6670547",
-	"issue_desc": "A new issue needs to be created for setting up the repository structure. This task involves creating the necessary folders, branches, and initial files to establish the projects version control system. The done criteria for this task include:\n\n1. Creation of the main project folder and subfolders for different components or modules.\n2. Creation of the appropriate branches, such as development, staging, and production.\n3. Initial commit of the project files to the repository.\n4. Verification of the repository structure by the assignee.\n\nOnce this issue is completed, the project will have a well-organized and functional repository structure in place.",
-	"issue_id": "5081707",
-	"issue_title": "Setting up Repository Structure",
-	"priority": "High",
-	"reporter_id": 4747824,
-	"story_points": 2
-}
-
-And the user asks to update the story points to 3
-
-then your response back to the user should be:
-{
-	"assignee_id": "6670547",
-	"issue_desc": "A new issue needs to be created for setting up the repository structure. This task involves creating the necessary folders, branches, and initial files to establish the projects version control system. The done criteria for this task include:\n\n1. Creation of the main project folder and subfolders for different components or modules.\n2. Creation of the appropriate branches, such as development, staging, and production.\n3. Initial commit of the project files to the repository.\n4. Verification of the repository structure by the assignee.\n\nOnce this issue is completed, the project will have a well-organized and functional repository structure in place.",
-	"issue_id": "5081707",
-	"issue_title": "Setting up Repository Structure",
-	"priority": "High",
-	"reporter_id": "4747824",
-	"story_points": "3"
-}
-Limit your answer to the json only. Do not add any extra text in your response back to the user other than the json file. You don't even have to explain what changes you have made. Keep in mind your response is directly being processed, since this is a call made programatically.
+- The user has asked to update the details of the issue.
+- The user has provided the current details of the issue in the form of a json.
+- The user would have also provided the update request that specifies which attribute in the json has to be updated.
+- Analyse the request and identify which attributes in the json has to be updated.
+- update the value of the attributes in the json.
+- return the updated json.
+- your response to the user should be always in a proprer json.
+- do not include any other text in the response other than the updated json.

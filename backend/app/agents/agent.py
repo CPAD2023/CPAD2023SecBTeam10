@@ -37,7 +37,7 @@ class AgentInstance:
             output = output.to_json()["kwargs"]["content"]
             return output
         elif self.action == "update_issue":
-            human_template="Here is the details of the existing issue. {context} \n\n This issue has to be updated. {task} \n\n  This is what the user wants to update in the json: {user_input}. Update the issue and return only the new json"
+            human_template="{task} \n\n {context} \n\n Update_request: {user_input}"
             human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
             chat_prompt = ChatPromptTemplate.from_messages([self.system_message_prompt, human_message_prompt])
             output = self.llm(chat_prompt.format_prompt(context=context, task=task, user_input=user_input).to_messages())
