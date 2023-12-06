@@ -1,9 +1,8 @@
-// issues_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class IssuesPage extends StatefulWidget {
   final String userId;
@@ -24,7 +23,6 @@ class _IssuesPageState extends State<IssuesPage> {
     // Fetch issues when the widget is initialized
     fetchIssues(widget.userId, widget.projectId);
   }
-
   Future<void> fetchIssues(String userId, String projectId) async {
     final apiUrl = 'http://52.23.94.89:8080/my_issues';
 
@@ -174,31 +172,40 @@ class _IssuesPageState extends State<IssuesPage> {
                 },
                 decoration: InputDecoration(labelText: 'User Input'),
               ),
+              SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // Call the updateIssue function and close the popup
+                      updateIssue(issueId, userInput);
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Update'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Call the deleteIssue function and close the popup
+                      deleteIssue(issueId);
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.red, // Button color for delete
+                    ),
+                    child: Text('Delete'),
+                  ),
+                ],
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Close the popup
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Call the updateIssue function and close the popup
-                updateIssue(issueId, userInput);
-                Navigator.of(context).pop();
-              },
-              child: Text('Update'),
-            ),
-          ],
         );
       },
     );
   }
 
- void _showCreateIssuePopup() {
+
+  void _showCreateIssuePopup() {
     String userInput = '';
 
     showDialog(
@@ -237,6 +244,52 @@ class _IssuesPageState extends State<IssuesPage> {
       },
     );
   }
+
+  Future<void> deleteIssue(int issueId) async {
+    final apiUrl = 'http://52.23.94.89:8080/delete_issue';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'issue_id': issueId,
+        }),
+      );
+
+      print('Delete issue response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (data.containsKey('status') && data['status'] == 'success') {
+          // Handle the successful deletion, e.g., show a success message
+          _showSnackBar('Issue deleted successfully', Colors.green);
+        } else {
+          print('Failed to delete issue. Server response: ${data['status']}');
+          _showSnackBar('Failed to delete issue. Please try again.', Colors.red);
+        }
+      } else {
+        print('Failed to delete issue. Status code: ${response.statusCode}');
+        _showSnackBar('Failed to delete issue. Please try again.', Colors.red);
+      }
+    } catch (e) {
+      print('Error: $e');
+      _showSnackBar('An error occurred. Please try again.', Colors.red);
+    }
+  }
+
+  // Function to show a SnackBar
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
 
   Future<void> createIssue(String userInput) async {
     final apiUrl = 'http://52.23.94.89:8080/create_issue';
@@ -330,32 +383,48 @@ class _IssuesPageState extends State<IssuesPage> {
           if (index == issues.length) {
             // Button for create_issue
             return Card(
-              child: ListTile(
-                title: Text('Create Issue'),
-                onTap: () {
+              child: ElevatedButton(
+                onPressed: () {
                   _showCreateIssuePopup();
                 },
+                child: Text('Create Issue'),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.deepPurpleAccent, // Button color
+                  onPrimary: Colors.white, // Text color
+                ),
               ),
             );
           } else if (index == issues.length + 1) {
             // Button for scrum_update
             return Card(
-              child: ListTile(
-                title: Text('Scrum Update'),
-                onTap: () {
+              child: ElevatedButton(
+                onPressed: () {
                   _showScrumUpdatePopup();
                 },
+                child: Text('Scrum Update'),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.deepPurpleAccent, // Button color
+                  onPrimary: Colors.white, // Text color
+                ),
               ),
             );
           } else {
             // Display existing issues
             return Card(
-              child: ListTile(
-                title: Text(issues[index]['issue_title']),
-                trailing: Text('Priority: ${issues[index]['priority']}'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                side: BorderSide(color: Colors.grey), // Border color for each card
+              ),
+              margin: EdgeInsets.all(8.0),
+              child: InkWell(
                 onTap: () {
                   fetchIssueDetails(issues[index]['issue_id']);
                 },
+                child: ListTile(
+                  title: Text(issues[index]['issue_title']),
+                  subtitle: Text('Priority: ${issues[index]['priority']}'),
+                  trailing: Icon(Icons.arrow_forward),
+                ),
               ),
             );
           }
