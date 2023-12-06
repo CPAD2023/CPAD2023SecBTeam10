@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
+import 'issues_page.dart'; // Import the IssuesPage
 
 class ProjectSelectionPage extends StatefulWidget {
   final String userId;
@@ -15,6 +16,10 @@ class ProjectSelectionPage extends StatefulWidget {
 class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
   String? selectedProject;
   List<String> projects = [];
+
+  TextEditingController _newProjectController = TextEditingController();
+  TextEditingController _newProjectDescriptionController = TextEditingController();
+
 
   @override
   void initState() {
@@ -53,6 +58,77 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  Future<void> createProject(String projectName, String projectDescription) async {
+    final apiUrl = 'http://52.23.94.89:8080/create_project';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': widget.userId,
+          'project_name': projectName,
+          'project_description': projectDescription,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (data.containsKey('status') && data['status'] == 'success') {
+          // Refresh the project list after creating a new project
+          fetchProjects(widget.userId);
+        } else {
+          print('Failed to create project. Server response: ${data['status']}');
+        }
+      } else {
+        print('Failed to create project. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> _showCreateProjectDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Create New Project'),
+          content: Column(
+            children: [
+              TextField(
+                controller: _newProjectController,
+                decoration: InputDecoration(hintText: 'Enter Project Name'),
+              ),
+              TextField(
+                controller: _newProjectDescriptionController,
+                decoration: InputDecoration(hintText: 'Enter Project Description'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                String projectName = _newProjectController.text;
+                String projectDescription = _newProjectDescriptionController.text;
+                createProject(projectName, projectDescription);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Create'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -127,27 +203,59 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
                 ),
               ),
               Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Select a Project:'),
                   SizedBox(height: 16.0),
-                  DropdownButton<String>(
-                    value: selectedProject,
-                    items: projects
-                        .map((project) =>
-                        DropdownMenuItem(value: project, child: Text(project)))
-                        .toList(),
-                    onChanged: (selectedItem) {
-                      setState(() {
-                        selectedProject = selectedItem;
-                      });
+                  Container(
+                    width: 150.0, // Set your desired width
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.0),
+                      border: Border.all(color: Colors.deepPurpleAccent, width: 2.0),
+                    ),
+                    child: Row(
+                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        DropdownButton<String>(
+                          value: selectedProject,
+                          items: projects
+                              .map((project) => DropdownMenuItem(value: project, child: Text(project)))
+                              .toList(),
+                          onChanged: (selectedItem) {
+                            setState(() {
+                              selectedProject = selectedItem;
+                            });
 
-                      // Handle the selected project
-                      print('Selected Project: $selectedProject');
-                    },
-                    hint: Text('Select Project'),
+                            // Navigate to the IssuesPage with the selected project and user IDs
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => IssuesPage(
+                                  userId: widget.userId,
+                                  projectId: selectedProject!,
+                                ),
+                              ),
+                            );
+                          },
+                          hint: Text('Select Project'),
+                          style: TextStyle(
+                            color: Colors.deepPurpleAccent, // Text color
+                            fontSize: 16.0, // Text size
+                          ),
+                          underline: Container(), // Remove the default underline
+                        ),
+                        // Icon(
+                        //   Icons.arrow_drop_down,
+                        //   color: Colors.deepPurpleAccent, // Dropdown arrow color
+                        // ),
+                      ],
+                    ),
                   ),
                 ],
+              ),
+              ElevatedButton(
+                onPressed: () => _showCreateProjectDialog(context),
+                child: Text('Create New Project'),
               ),
             ],
           ),
