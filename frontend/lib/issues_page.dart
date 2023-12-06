@@ -200,8 +200,11 @@ class _IssuesPageState extends State<IssuesPage> {
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Description: ${issueDetails['issue_desc']}'),
-              Text('Priority: ${issueDetails['priority']}'),
+              Text('Description: ${issueDetails['issue_desc']} \n'),
+              Text('Priority: ${issueDetails['priority']}\n'),
+              Text('Story Points: ${issueDetails['story_points']}\n'),
+              Text('Reported by: ${issueDetails['reporter_id']}\n'),
+              Text('Assigned to: ${issueDetails['assignee_id']}\n'),
               // Add more details as needed
             ],
           ),
