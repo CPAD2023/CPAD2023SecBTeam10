@@ -162,93 +162,101 @@ class _IssuesPageState extends State<IssuesPage> {
 
   // Function to show a popup for updating the issue
   void _showUpdateIssuePopup(int issueId) {
-    String userInput = '';
+  String userInput = '';
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Update Issue'),
-          content: Column(
-            children: [
-              TextField(
-                onChanged: (value) {
-                  userInput = value;
-                },
-                decoration: InputDecoration(labelText: 'User Input'),
-              ),
-              SizedBox(height: 16.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Call the updateIssue function and close the popup
-                      updateIssue(issueId, userInput);
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('Update'),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Update Issue'),
+        content: Column(
+          children: [
+            TextField(
+              onChanged: (value) {
+                userInput = value;
+              },
+              decoration: InputDecoration(labelText: 'User Input'),
+            ),
+            SizedBox(height: 16.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    // Call the updateIssue function and close the popup
+                    await updateIssue(issueId, userInput);
+                    Navigator.of(context).pop();
+                    // Refresh issues after the update
+                    fetchIssues(widget.userId, widget.projectId);
+                  },
+                  child: Text('Update'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    // Call the deleteIssue function and close the popup
+                    await deleteIssue(issueId);
+                    Navigator.of(context).pop();
+                    // Refresh issues after the deletion
+                    fetchIssues(widget.userId, widget.projectId);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.red, // Button color for delete
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Call the deleteIssue function and close the popup
-                      deleteIssue(issueId);
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.red, // Button color for delete
-                    ),
-                    child: Text('Delete'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+                  child: Text('Delete'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 
 
   void _showCreateIssuePopup() {
-    String userInput = '';
+  String userInput = '';
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Create Issue'),
-          content: Column(
-            children: [
-              TextField(
-                onChanged: (value) {
-                  userInput = value;
-                },
-                decoration: InputDecoration(labelText: 'User Input'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Close the popup
-                Navigator.of(context).pop();
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Create Issue'),
+        content: Column(
+          children: [
+            TextField(
+              onChanged: (value) {
+                userInput = value;
               },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Call the createIssue function and close the popup
-                createIssue(userInput);
-                Navigator.of(context).pop();
-              },
-              child: Text('Create'),
+              decoration: InputDecoration(labelText: 'User Input'),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Close the popup
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Call the createIssue function and close the popup
+              await createIssue(userInput);
+              Navigator.of(context).pop();
+              // Refresh issues after creating a new issue
+              fetchIssues(widget.userId, widget.projectId);
+            },
+            child: Text('Create'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   Future<void> deleteIssue(int issueId) async {
     final apiUrl = 'http://52.23.94.89:8080/delete_issue';
@@ -329,22 +337,7 @@ class _IssuesPageState extends State<IssuesPage> {
     }
   }
 
-  void _showScrumUpdatePopup() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-
-    if (result != null) {
-      
-      String fileName = result.files.single.name;
-
-      // Call the scrumUpdate function with the selected file path and name
-      scrumUpdate(fileName);
-    } else {
-      // User canceled file picking
-      print('User canceled file picking');
-    }
-  }
-
-  Future<void> scrumUpdate(String fileName) async {
+Future<void> scrumUpdate(String fileName) async {
     final apiUrl = 'http://52.23.94.89:8080/scrum_update';
 
     try {
@@ -375,6 +368,41 @@ class _IssuesPageState extends State<IssuesPage> {
       print('Error: $e');
     }
   }
+
+  void _showScrumUpdatePopup() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+  if (result != null) {
+    
+    String fileName = result.files.single.name;
+
+    // Call the scrumUpdate function with the selected file path and name
+    await scrumUpdate(fileName);
+
+    // Show a popup indicating successful scrum update
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Scrum Update Successful'),
+          content: Text('Scrum update has been successfully performed.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    // User canceled file picking
+    print('User canceled file picking');
+  }
+  }
+  
 
   @override
   Widget build(BuildContext context) {
