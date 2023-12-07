@@ -16,6 +16,12 @@ class IssuesPage extends StatefulWidget {
 class _IssuesPageState extends State<IssuesPage> {
   List<Map<String, dynamic>> issues = [];
 
+  void _logout() {
+    // Add any necessary logout logic here
+
+    // Navigate to the login page
+    Navigator.pushReplacementNamed(context, '/login');
+  }
   @override
   void initState() {
     super.initState();
@@ -375,6 +381,17 @@ class _IssuesPageState extends State<IssuesPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Issues for Project'),
+        backgroundColor: Color.fromRGBO(143, 148, 251, 1),
+        actions: [
+          // Logout button
+          TextButton(
+            onPressed: _logout,
+            child: Text(
+              'Logout',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
       body: ListView.builder(
         itemCount: issues.length + 2, // Add 2 for the new buttons
