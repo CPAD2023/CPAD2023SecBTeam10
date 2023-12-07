@@ -13,7 +13,7 @@ Assignement Description:
 - We have created this autoScrum application that will allow users to specify the details of the product, and scrum practices as the context to the agent and ask the agent to perform several tasks such as creating, updating, and deleting issues.
 - The agent can also process example transcripts from meetings to identify tasks and perform them, making it easier for users to process scrum documents.
 
-Simple Architecture Diagram: <br>
+Simple Architecture Diagram: <br><br>
 ![autoScrum_arch](https://github.com/CPAD2023/CPAD2023SecBTeam10/assets/66842711/1535bbb9-10fa-4d38-a35f-d5f8ccd1df69)
 
 
