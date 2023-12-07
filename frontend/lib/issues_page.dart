@@ -383,6 +383,7 @@ Future<void> scrumUpdate(String fileName) async {
         if (data.containsKey('status') && data['status'] == 'success') {
           // Handle the successful scrum update, e.g., show a success message
           print('Scrum update successful');
+          fetchIssues(widget.userId, widget.projectId);
         } else {
           print('Failed to perform scrum update. Server response: ${data['status']}');
         }

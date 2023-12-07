@@ -32,8 +32,9 @@ class _SignupPageState extends State<SignupPage> {
           'password': _passwordController.text,
         }),
       );
-
-      if (response.body == "Success") {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      print('${data}');
+      if (data.containsKey('status') && data['status'] == "success") {
         Navigator.pushReplacementNamed(context, '/login');
       } else {
         // Handle other status codes if needed
