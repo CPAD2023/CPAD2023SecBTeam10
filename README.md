@@ -14,7 +14,8 @@ Assignement Description:
 - The agent can also process example transcripts from meetings to identify tasks and perform them, making it easier for users to process scrum documents.
 
 Simple Architecture Diagram: <br>
-![autoScrum_arch](https://github.com/CPAD2023/CPAD2023SecBTeam10/assets/66842711/59285227-7745-4116-ae35-eb8d9a4dd33f)
+![autoScrum_arch](https://github.com/CPAD2023/CPAD2023SecBTeam10/assets/66842711/1535bbb9-10fa-4d38-a35f-d5f8ccd1df69)
+
 
 Tech Stack
 - OpenAI and Langchain for LLM tasks.
