@@ -20,6 +20,13 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
   TextEditingController _newProjectController = TextEditingController();
   TextEditingController _newProjectDescriptionController = TextEditingController();
 
+  // Function to perform logout and navigate to login page
+  void _logout() {
+    // Add any necessary logout logic here
+
+    // Navigate to the login page
+    Navigator.pushReplacementNamed(context, '/login');
+  }
 
   @override
   void initState() {
@@ -136,6 +143,17 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Project Selection'),
+        backgroundColor: Color.fromRGBO(143, 148, 251, 1),
+        actions: [
+          // Logout button
+          TextButton(
+            onPressed: _logout,
+            child: Text(
+              'Logout',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -206,15 +224,15 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
                 // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Select a Project:'),
-                  SizedBox(height: 16.0),
+                  SizedBox(height: 16.0), // Added spacing between the button and dropdown
+
                   Container(
                     width: 150.0, // Set your desired width
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0),
+                      borderRadius: BorderRadius.circular(20.0), // Make it more rounded
                       border: Border.all(color: Colors.deepPurpleAccent, width: 2.0),
                     ),
                     child: Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         DropdownButton<String>(
                           value: selectedProject,
@@ -243,6 +261,7 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
                             fontSize: 16.0, // Text size
                           ),
                           underline: Container(), // Remove the default underline
+                          alignment: Alignment.center, // Center align the text
                         ),
                         // Icon(
                         //   Icons.arrow_drop_down,
@@ -251,6 +270,7 @@ class _ProjectSelectionPageState extends State<ProjectSelectionPage> {
                       ],
                     ),
                   ),
+                  SizedBox(height: 20.0),
                 ],
               ),
               ElevatedButton(

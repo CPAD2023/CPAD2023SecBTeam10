@@ -2,3 +2,4 @@
 4567890 (Bob): Sure, we can update the issue to increase the story points. We were also informed that this issue has high priority, we might have to update that as well.
 3456789 (Alice): Sure! While we are at it, we can also create a new issue to identify the end points. Bob i guess you can work on this and this is a medium priority.
 4567890 (Bob): Yeah, assign this to me and also put it at 3 story points effort.
+1234567 (John): I also remember that there was a requirement for a mobile view and a new issue has to be created for creating a mobile view of the app and assign it to me. This would be medium priority and it would take him around 10 story points to complete.

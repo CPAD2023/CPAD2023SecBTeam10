@@ -4,13 +4,14 @@
     1. creating a new issue - they would ask a new issue to be created. In this case look for factors like who asked the task to be created, who is it being assigned to, what is the priority of the task, and what is the quoted story points. Finally create a json for this task. It should be formated as follows- {'task':'create_issue', 'reporter_id':'<reporter_id>' , 'task_description':'<meaningful description of the task (include what is the task about, who it is assigned to, priority and story points)'}
     2. update on existing issue - they would provide a update on existing issue. Look for the issue that they are talking about and their update. For such a task create a json formatted as follows - {'task':'update_issue','issue_id':'<issue_id>' 'task_description':'<meaningful description of the update'>}
 - Find all such tasks that has been discussed in the conversation.
+- In the task description, never mention the name of the user, instead use their user id. For example if there is a user 4567890 (Bob) then insted of mentioning "Assign this issue to Bob" you always have to mask it as "Assign this issue to 4567890"
 - There will be multiple jsons.
 - You need to create a list of all jsons and return this list as your response to the query.
 - Do not include any other text in your response other than the list. 
 - I repeat, do not include any other text (including conversation or explainations) other than the list in your response.
 - Analyse the conversations very carefully.
 
-For example:
+------------------------------ The following is an example of a similar scenario. This is only an example ------------------------------
 The conversation between the team members are as follows:
 112123 (Alex): I have an update on the issue 112312. I have to add new test cases to test the loading of nav bar. I am assuming that it would take me one more story point of work to finish it. Meanwhile a new issue to be created for creating a submit button.
 111421 (Mike): Currently I do not have an issues asiigned to me. I can take up the issue on the submit button. I have available capacity.
@@ -40,3 +41,5 @@ What you have do is analyse this conversation and create a list of tasks as show
 
 You need to return the list of tasks back to the user. Only return this list of jsons as your result. Do not include any other text in your response.
 Note: Do not use the names of the person in the response. The company has a policy to mask the names with their user numbers. You can find the user numbers in the chat. For example, instead of saying  "Assign the issue to mike", you say assign the issue to 111421.
+
+------------------------------ End of Example ------------------------------

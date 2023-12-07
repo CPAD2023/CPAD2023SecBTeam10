@@ -1,4 +1,4 @@
-name: scrum_bot
+name: AutoScrum
 description: A Flutter project for scrum.
 
 # The following line prevents the package from being accidentally published to
@@ -30,7 +30,7 @@ dependencies:
   flutter:
     sdk: flutter
   file_picker: ^4.2.0
-
+  flutter_launcher_icons: ^0.13.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
@@ -38,6 +38,10 @@ dependencies:
   animate_do: ^3.1.2
   http: ^1.1.2
 
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/scrum_icon.png"
 
 dev_dependencies:
   flutter_test:

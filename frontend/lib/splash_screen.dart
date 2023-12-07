@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               SizedBox(height: 16.0),
               Text(
-                'Scrum Bot',
+                'AutoScrum',
                 style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
             ],
