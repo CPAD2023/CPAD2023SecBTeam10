@@ -15,6 +15,7 @@ class IssuesPage extends StatefulWidget {
 
 class _IssuesPageState extends State<IssuesPage> {
   List<Map<String, dynamic>> issues = [];
+  bool isCreatingIssue = false;
 
   void _logout() {
     // Add any necessary logout logic here
@@ -22,12 +23,77 @@ class _IssuesPageState extends State<IssuesPage> {
     // Navigate to the login page
     Navigator.pushReplacementNamed(context, '/login');
   }
+
   @override
   void initState() {
     super.initState();
     // Fetch issues when the widget is initialized
     fetchIssues(widget.userId, widget.projectId);
   }
+
+  void _showCreateIssuePopup() {
+    String userInput = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Create Issue'),
+          content: Column(
+            children: [
+              TextField(
+                onChanged: (value) {
+                  userInput = value;
+                },
+                decoration: InputDecoration(labelText: 'User Input'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Close the popup
+                Navigator.of(context).pop();
+                fetchIssues(widget.userId, widget.projectId);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Set the flag to indicate that data is being fetched
+                setState(() {
+                  isCreatingIssue = true;
+                });
+
+                // Call the createIssue function
+                await createIssue(userInput);
+
+                // Reset the flag after data fetching is complete
+                setState(() {
+                  isCreatingIssue = false;
+                  fetchIssues(widget.userId, widget.projectId);
+                });
+
+                // Close the popup
+                Navigator.of(context).pop();
+
+                // Fetch issues after creating a new issue
+                fetchIssues(widget.userId, widget.projectId);
+              },
+              child: Text('Create'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _fetchIssuesAfterCreate() async {
+    // Fetch issues again after creating a new issue
+    fetchIssues(widget.userId, widget.projectId);
+  }
+
+
   Future<void> fetchIssues(String userId, String projectId) async {
     final apiUrl = 'http://52.23.94.89:8080/my_issues';
 
@@ -202,56 +268,12 @@ class _IssuesPageState extends State<IssuesPage> {
                   style: ElevatedButton.styleFrom(
                     primary: Colors.red, // Button color for delete
                   ),
-                  child: Text('Delete'),
+                  child: Text('Delete Issue'),
                 ),
               ],
             ),
           ],
         ),
-      );
-    },
-  );
-}
-
-
-
-  void _showCreateIssuePopup() {
-  String userInput = '';
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Create Issue'),
-        content: Column(
-          children: [
-            TextField(
-              onChanged: (value) {
-                userInput = value;
-              },
-              decoration: InputDecoration(labelText: 'User Input'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Close the popup
-              Navigator.of(context).pop();
-            },
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              // Call the createIssue function and close the popup
-              await createIssue(userInput);
-              Navigator.of(context).pop();
-              // Refresh issues after creating a new issue
-              fetchIssues(widget.userId, widget.projectId);
-            },
-            child: Text('Create'),
-          ),
-        ],
       );
     },
   );
@@ -402,7 +424,7 @@ Future<void> scrumUpdate(String fileName) async {
     print('User canceled file picking');
   }
   }
-  
+
 
   @override
   Widget build(BuildContext context) {
@@ -431,7 +453,9 @@ Future<void> scrumUpdate(String fileName) async {
                 onPressed: () {
                   _showCreateIssuePopup();
                 },
-                child: Text('Create Issue'),
+                child: isCreatingIssue
+                    ? CircularProgressIndicator() // Show indicator while creating
+                    : Text('Create Issue'),
                 style: ElevatedButton.styleFrom(
                   primary: Colors.deepPurpleAccent, // Button color
                   onPrimary: Colors.white, // Text color
