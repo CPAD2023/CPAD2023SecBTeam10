@@ -246,12 +246,13 @@ def create_issue():
         reporter_id = agent_respose["reporter_id"]
         assignee_id = agent_respose["assignee_id"] 
         issue_title = agent_respose["issue_title"]
-
-        rag = RetrivalAugmentedGeneration()
-        rag.add_to_collection(issue_data=current_issues)
-        related_issues = rag.query(user_query=user_input)
-        rag.clean_collection()
-
+        if len(current_issues) > 0:
+            rag = RetrivalAugmentedGeneration()
+            rag.add_to_collection(issue_data=current_issues)
+            related_issues = rag.query(user_query=user_input)
+            rag.clean_collection()
+        else:
+            related_issues = "Nothing found"
         issue_description = agent_respose["issue_description"].replace("\'", "") + "Related issues: " + related_issues
         priority = agent_respose["priority"]
         story_points = agent_respose["story_points"]
