@@ -1,2 +1,11 @@
-# CPAD2023SecBTeam10
-CPAD2023SecBTeam10
+# autoScrum
+
+
+### About Assignment:
+Group: B10
+Assignement Description:
+
+
+
+### How To:
+Run Backend:
